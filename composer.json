@@ -1,0 +1,30 @@
+{
+    "name": "waska14/laravel-with-db-transactions",
+    "description": "Use middleware globally for all routes to put every controller in database transaction",
+    "keywords": ["laravel", "transactions", "database"],
+    "type": "library",
+    "homepage": "https://github.com/waska14/laravel-with-db-transactions",
+    "license": "MIT",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Waska Chaduneli (waska14)",
+            "email": "waska.chaduneli@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Waska\\LaravelWithDBTransactions\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Waska\\LaravelWithDBTransactions\\WithDBTransactionsServiceProvider"
+            ]
+        }
+    }
+}
