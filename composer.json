@@ -5,7 +5,6 @@
     "type": "library",
     "homepage": "https://github.com/waska14/laravel-with-db-transactions",
     "license": "MIT",
-    "version": "1.0.0",
     "authors": [
         {
             "name": "Waska Chaduneli (waska14)",
