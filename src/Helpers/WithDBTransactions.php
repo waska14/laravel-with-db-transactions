@@ -38,7 +38,7 @@ class WithDBTransactions
         }
         $closure = Arr::first($arguments);
         if (!is_callable($closure)) {
-            throw new InvalidCallableParameterException('You must pass callable variable as a second argument!');
+            throw new InvalidCallableParameterException('You must pass callable as an argument!');
         }
         self::$closures[Str::snake($name)][] = $closure;
     }
