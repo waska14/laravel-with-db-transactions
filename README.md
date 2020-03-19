@@ -9,7 +9,7 @@
 * [Installation](#installation)
 * [Configuration (Config based management)](#configuration)
 * [Manual usage](#manual-usage)
-* [Additional information](#additional-information)
+* [Actions and events](#actions-and-events)
 
 ## Installation
 Add the package in your composer.json by executing the command.
@@ -140,7 +140,7 @@ maximum_attempts | `integer` | Maybe if deadlocks occurs or something else
 
 If you want **manually management**, you can use `middleware_alias` (or change it, also) as route middleware.
 
-## Manual Usage
+## Manual usage
 If you define `middleware_groups` as an empty array in config, none of the routes will be processed with database transactions by default, **until** you set manually the middleware for the specific **routes**/**route groups**.
 
 **Note** that you can fill `middleware_groups` and also use middleware **manually** anywhere you want the method to be processed with database transaction.
@@ -149,7 +149,7 @@ Default middleware alias is `with_db_transactions` which can be changed in confi
 
 **Note** that all configuration (`ignore_route_names`, `ignore_request_methods`, `maximum_attempts`, `commit_http_statuses` etc.) will also work when using this package manually.
 
-## Additional Information
+## Actions and Events
 After version `2.0.0` you can define closures that will be executed before/after commit/rollback(s).
 
 There are 6 static functions that you can call with **`Waska\LaravelWithDBTransactions\Helpers\WithDBTransactions`** class:
