@@ -9,6 +9,7 @@
 * [Installation](#installation)
 * [Configuration (Config based management)](#configuration)
 * [Manual usage](#manual-usage)
+* [Actions and events](#actions-and-events)
 
 ## Installation
 Add the package in your composer.json by executing the command.
@@ -112,6 +113,18 @@ return [
      * Note: if value is null, default maximum_attempts will be used.
      */
     'maximum_attempts_for_groups' => null,
+
+    /*
+     * Before and after action events
+     */
+    'before_begin_transaction_event' => \Waska\LaravelWithDBTransactions\Events\BeforeBeginTransactionEvent::class,
+    'after_begin_transaction_event' => \Waska\LaravelWithDBTransactions\Events\AfterBeginTransactionEvent::class,
+    'before_commit_event' => \Waska\LaravelWithDBTransactions\Events\BeforeCommitEvent::class,
+    'after_commit_event' => \Waska\LaravelWithDBTransactions\Events\AfterCommitEvent::class,
+    'before_rollback_event' => \Waska\LaravelWithDBTransactions\Events\BeforeRollbackEvent::class,
+    'after_rollback_event' => \Waska\LaravelWithDBTransactions\Events\AfterRollbackEvent::class,
+    'before_every_rollback_event' => \Waska\LaravelWithDBTransactions\Events\BeforeEveryRollbackEvent::class,
+    'after_every_rollback_event' => \Waska\LaravelWithDBTransactions\Events\AfterEveryRollbackEvent::class,
 ];
 ```
 
@@ -127,7 +140,7 @@ maximum_attempts | `integer` | Maybe if deadlocks occurs or something else
 
 If you want **manually management**, you can use `middleware_alias` (or change it, also) as route middleware.
 
-## Manual Usage
+## Manual usage
 If you define `middleware_groups` as an empty array in config, none of the routes will be processed with database transactions by default, **until** you set manually the middleware for the specific **routes**/**route groups**.
 
 **Note** that you can fill `middleware_groups` and also use middleware **manually** anywhere you want the method to be processed with database transaction.
@@ -135,3 +148,82 @@ If you define `middleware_groups` as an empty array in config, none of the route
 Default middleware alias is `with_db_transactions` which can be changed in config, also.
 
 **Note** that all configuration (`ignore_route_names`, `ignore_request_methods`, `maximum_attempts`, `commit_http_statuses` etc.) will also work when using this package manually.
+
+## Actions and Events
+After version `2.0.0` you can define closures that will be executed before/after commit/rollback(s).
+
+There are 6 static functions that you can call with **`Waska\LaravelWithDBTransactions\Helpers\WithDBTransactions`** class:
+```php
+WithDBTransactions::beforeCommit(callable $closure); // Before committing database transaction
+WithDBTransactions::afterCommit(callable $closure); // After committing database transaction
+WithDBTransactions::beforeRollback(callable $closure); // Before last rollback
+WithDBTransactions::afterRollback(callable $closure); // After last rollback
+WithDBTransactions::beforeEveryRollback(callable $closure); // Before every (except last) rollback
+WithDBTransactions::afterEveryRollback(callable $closure); // After every (except last) rollback
+```
+
+**Usage:**
+```php
+WithDBTransactions::beforeCommit(function () {
+    \Log::info('First log and then commit!');
+});
+WithDBTransactions::afterCommit(function () {
+    \Log::info('First commit and then log!');
+});
+```
+
+Note that each function can be called as many times as you want. All closures will be executed with the same sequence.
+E.x:
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller as BaseController;
+use Waska\LaravelWithDBTransactions\Helpers\WithDBTransactions;
+
+class Controller extends BaseController
+{
+    public function create(Request $request)
+    {
+        // your stuff
+        WithDBTransactions::beforeRollback(function () {
+            \Log::info('log1 before rollback!');
+        });
+        WithDBTransactions::afterRollback(function () {
+            \Log::info('log1 after rollback!');
+        });
+        WithDBTransactions::afterRollback(function () {
+            \Log::info('log2 after rollback!');
+        });
+        // your stuff
+        \App\User::create($request->validated());
+
+        // Some error happened, so middleware rollbacks the transaction
+        throw new \Exception('Something went wrong');
+    }
+}
+
+```
+After rollback `storage/logs/laravel.log` looks like:
+```text
+[Y-m-d H:i:s] local.INFO: log1 before rollback
+[Y-m-d H:i:s] local.INFO: log1 after rollback
+[Y-m-d H:i:s] local.INFO: log2 after rollback
+```
+
+
+After version `2.0.0` package dispatches **events** also.
+
+You can listen them and do whatever you want in listener.
+
+List of events:
+- `\Waska\LaravelWithDBTransactions\Events\BeforeBeginTransactionEvent` Before begin transaction
+- `\Waska\LaravelWithDBTransactions\Events\AfterBeginTransactionEvent` After begin transaction
+- `\Waska\LaravelWithDBTransactions\Events\BeforeCommitEvent` Before commit
+- `\Waska\LaravelWithDBTransactions\Events\AfterCommitEvent` After commit
+- `\Waska\LaravelWithDBTransactions\Events\BeforeRollbackEvent` Before latest rollback
+- `\Waska\LaravelWithDBTransactions\Events\AfterRollbackEvent` After latest rollback
+- `\Waska\LaravelWithDBTransactions\Events\BeforeEveryRollbackEvent` Before every rollback
+- `\Waska\LaravelWithDBTransactions\Events\AfterEveryRollbackEvent` After every rollback

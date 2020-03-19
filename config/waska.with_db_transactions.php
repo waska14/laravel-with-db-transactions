@@ -73,4 +73,16 @@ return [
      * Note: if value is null, default maximum_attempts will be used.
      */
     'maximum_attempts_for_groups' => null,
+
+    /*
+     * Before and after action events
+     */
+    'before_begin_transaction_event' => \Waska\LaravelWithDBTransactions\Events\BeforeBeginTransactionEvent::class,
+    'after_begin_transaction_event' => \Waska\LaravelWithDBTransactions\Events\AfterBeginTransactionEvent::class,
+    'before_commit_event' => \Waska\LaravelWithDBTransactions\Events\BeforeCommitEvent::class,
+    'after_commit_event' => \Waska\LaravelWithDBTransactions\Events\AfterCommitEvent::class,
+    'before_rollback_event' => \Waska\LaravelWithDBTransactions\Events\BeforeRollbackEvent::class,
+    'after_rollback_event' => \Waska\LaravelWithDBTransactions\Events\AfterRollbackEvent::class,
+    'before_every_rollback_event' => \Waska\LaravelWithDBTransactions\Events\BeforeEveryRollbackEvent::class,
+    'after_every_rollback_event' => \Waska\LaravelWithDBTransactions\Events\AfterEveryRollbackEvent::class,
 ];

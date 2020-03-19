@@ -4,9 +4,9 @@ namespace Waska\LaravelWithDBTransactions\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
+use Waska\LaravelWithDBTransactions\Helpers\WithDBTransactions as WithDBTransactionsHelper;
 
 class WithDBTransactions
 {
@@ -22,13 +22,14 @@ class WithDBTransactions
             return $next($request);
         }
         $attempts = $attempts ?: config('waska.with_db_transactions.maximum_attempts');
+        WithDBTransactionsHelper::middlewareStarted();
         do {
-            DB::beginTransaction();
+            WithDBTransactionsHelper::beginTransaction($request);
             if ($this->shouldCommitTransaction($response = $next($request))) {
-                DB::commit();
+                WithDBTransactionsHelper::commit($request);
                 return $response;
             }
-            DB::rollBack();
+            WithDBTransactionsHelper::rollback($request, $attempts - 1 <= 0);
         } while (--$attempts > 0);
         return $response;
     }
