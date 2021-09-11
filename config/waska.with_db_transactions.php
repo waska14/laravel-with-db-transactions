@@ -3,14 +3,14 @@
 /** @noinspection PhpFullyQualifiedNameUsageInspection */
 return [
     /*
-     * Route names that will be processed without transaction by WithDBTransactions middleware
+     * Route names that will be ignored by WithDBTransactions middleware
      */
     'ignore_route_names' => [
         // login
     ],
 
     /*
-     * Request methods that will be processed without transaction by WithDBTransactions middleware
+     * Request methods that will be ignored by WithDBTransactions middleware
      */
     'ignore_request_methods' => [
         'get',
@@ -18,7 +18,10 @@ return [
 
     /*
      * Maximum attempts for transaction by default.
-     * Note: You can ignore route name, than use middleware with_db_transactions:N where N is the number of attempts.
+     * Note: If you want to override for a single route:
+     * 1. Give it an unique route name
+     * 2. Ignore the name in "ignore_route_names" array (above in this config file)
+     * 3. Give to your route middleware: "with_db_transactions:N" where N is the number of attempts
      */
     'maximum_attempts' => 1,
 
@@ -50,8 +53,7 @@ return [
     ],
 
     /*
-     * Middleware default class.
-     * Anytime you can extend/override the class and change namespace of middleware_class
+     * Default middleware class.
      */
     'middleware_class' => \Waska\LaravelWithDBTransactions\Http\Middleware\WithDBTransactions::class,
 
@@ -61,11 +63,11 @@ return [
     'middleware_alias' => 'with_db_transactions',
 
     /*
-     * List of middleware groups, where will be pushed with_db_transactions middleware by default (from ServiceProvider)
+     * List of middleware groups, which will contain with_db_transactions middleware by default
      */
     'middleware_groups' => [
-//        'api',
-//        'web',
+       // 'api',
+       // 'web',
     ],
 
     /*

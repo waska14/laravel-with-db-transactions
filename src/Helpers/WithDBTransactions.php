@@ -33,7 +33,7 @@ class WithDBTransactions
      */
     public static function __callStatic($name, $arguments)
     {
-        if (!self::$middlewareStarted) {
+        if (!self::isMiddlewareStarted()) {
             throw new MiddlewareIsNotPassedException('You are not using WithDBTransactions middleware!');
         }
         $closure = Arr::first($arguments);
@@ -43,15 +43,19 @@ class WithDBTransactions
         self::$closures[Str::snake($name)][] = $closure;
     }
 
-    /**
-     * This method sets middlewareStarted to true.
-     * It means that middleware is already executed.
-     *
-     * @return void
-     */
-    public static function middlewareStarted()
+    public static function startMiddleware()
     {
         self::$middlewareStarted = true;
+    }
+
+    public static function stopMiddleware()
+    {
+        self::$middlewareStarted = false;
+    }
+
+    public static function isMiddlewareStarted(): bool
+    {
+        return self::$middlewareStarted;
     }
 
     /**

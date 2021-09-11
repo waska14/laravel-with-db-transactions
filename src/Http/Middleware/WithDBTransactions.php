@@ -13,7 +13,7 @@ class WithDBTransactions
     /**
      * @param Request $request
      * @param Closure $next
-     * @param int $attempts
+     * @param int|null $attempts
      * @return mixed
      */
     public function handle($request, Closure $next, int $attempts = null)
@@ -22,7 +22,7 @@ class WithDBTransactions
             return $next($request);
         }
         $attempts = $attempts ?: config('waska.with_db_transactions.maximum_attempts');
-        WithDBTransactionsHelper::middlewareStarted();
+        WithDBTransactionsHelper::startMiddleware();
         do {
             WithDBTransactionsHelper::beginTransaction($request);
             if ($this->shouldCommitTransaction($response = $next($request))) {
