@@ -17,17 +17,17 @@ trait BaseEventTrait
     /**
      * Create a new event instance.
      *
-     * @param Request $request
+     * @param Request|null $request
      * @param int $currentAttempt
      */
-    public function __construct($request, int $currentAttempt)
+    public function __construct(Request $request = null, int $currentAttempt = 1)
     {
         $this->request = $request;
         $this->currentAttempt = $currentAttempt;
     }
 
     /**
-     * @return Request
+     * @return Request|null
      */
     public function getRequest()
     {

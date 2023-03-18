@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Throwable;
 use Waska\LaravelWithDBTransactions\Exceptions\InvalidCallableParameterException;
 use Waska\LaravelWithDBTransactions\Exceptions\MiddlewareIsNotPassedException;
 
@@ -48,6 +49,35 @@ class WithDBTransactions
         self::$middlewareStarted = true;
     }
 
+    /**
+     * Wraps your closure into transaction
+     * Note: this function uses default DB::transaction, but you have possibility to listen events like
+     * before/after commit/rollback/beginTransaction or event set closures for them.
+     *
+     * @param callable $closure
+     * @param int $attempts
+     * @return mixed|null
+     * @throws Throwable
+     */
+    public static function transaction(callable $closure, int $attempts = 1)
+    {
+        self::startMiddleware();
+        do {
+            self::beginTransaction();
+            try {
+                $result = $closure();
+                self::commit();
+                return $result;
+            } catch (Throwable $e) {
+                self::rollback(null, $attempts - 1 <= 0);
+                if ($attempts - 1 <= 0) {
+                    throw $e;
+                }
+            }
+        } while (--$attempts > 0);
+        return null;
+    }
+
     public static function stopMiddleware()
     {
         self::$middlewareStarted = false;
@@ -61,10 +91,10 @@ class WithDBTransactions
     /**
      * Begin transaction and do before and after stuff.
      *
-     * @param Request $request
+     * @param Request|null $request
      * @return void
      */
-    public static function beginTransaction($request)
+    public static function beginTransaction(Request $request = null)
     {
         self::$closures = [];
         self::$currentAttempt++;
@@ -76,10 +106,10 @@ class WithDBTransactions
     /**
      * Commit transaction and do before and after stuff.
      *
-     * @param Request $request
+     * @param Request|null $request
      * @return void
      */
-    public static function commit($request)
+    public static function commit(Request $request = null)
     {
         self::execute('before_commit');
         self::event('before_commit_event', $request);
@@ -91,11 +121,11 @@ class WithDBTransactions
     /**
      * Rollback transaction and do before and after stuff.
      *
-     * @param Request $request
+     * @param Request|null $request
      * @param bool $latest
      * @return void
      */
-    public static function rollback($request, bool $latest = true)
+    public static function rollback(Request $request = null, bool $latest = true)
     {
         $method = $latest ? 'rollback' : 'every_rollback';
         self::execute('before_' . $method);
@@ -119,7 +149,7 @@ class WithDBTransactions
     }
 
     /**
-     * This function dispatches an event depending event $key
+     * This function dispatches an event depending on event $key
      *
      * @param string $key
      * @param $request
